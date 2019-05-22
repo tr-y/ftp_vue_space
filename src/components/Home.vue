@@ -6,7 +6,7 @@
     </div>
     <div id="center_b" >
       <HomeVertical  @getHomeList="getHomeList" @chiletype="homeType"></HomeVertical>
-      <HomeCenter ref="homecenter" @setParentId="setParentId"  @childmodalresh="modalresh" :king=king :userId="userId" :parentId="parentId"  :dir_list="dir_list" ></HomeCenter>
+      <HomeCenter ref="homecenter" @setParentId="setParentId" :groupId="groupId" @childmodalresh="modalresh" :king=king :userId="userId" :parentId="parentId"  :dir_list="dir_list" ></HomeCenter>
     </div>
 
     <!--模态框-->
@@ -27,7 +27,7 @@
                   <input v-model="folad_name" style="margin: 25px" type="text" class="form-control col-md-offset-2" maxlength="10" placeholder="newfilename">
                 </div>
                 <div v-else>
-                  <UploadFile :parentId="parentId" :groupId="groupId" :king="king" :user="user" ref="uploadFile"></UploadFile>
+                  <UploadFile :parentId="parentId" :groupIds="groupId" :king="king" :user="user" ref="uploadFile"></UploadFile>
                 </div>
               </div>
             </div>
@@ -49,12 +49,11 @@
             <h4 class="modal-title">消息反馈</h4>
           </div>
           <div class="bs-example bs-example-form" role="form"  >
-            <div class="row">
               <div class="col-md-12">
-                <div class="input-group">
-                  <textarea v-model="putMessage" class="alpha" rows="5" cols="30" maxlength="30"></textarea>
-                </div>
-              </div>
+                 <div v-for="items in userGroupitems">
+                    消息：{{items.message}}
+                 </div>
+
             </div>
           </div>
           <div class="modal-footer">
@@ -75,6 +74,7 @@
   import HomeCenter from "./HomeCenter";
   import {getCookie} from "../js/CookieModel";
   import UploadFile  from  "./UploadFile"
+  import UserGroup from  '../js/UserGroup'
   export default {
     name: "Home",
     components: {HomeVertical, Headmennu,HomeCenter,UploadFile},
@@ -92,6 +92,7 @@
         putMessage:"",
         subParent:0,
         groupId:1,
+        userGroupitems:[],
         dir_list:[
           {"path":"/","parentId":0},
           {"path":"ceshi/","parentId":1},
@@ -162,7 +163,24 @@
         $('#folder_modal').modal('show');
       },
       messageresh: function (param) {
-        $('#returnMessage').modal('show');
+        let userGroup = new UserGroup()
+        var param ={
+          params:{
+            groupId:this.groupId,
+            send:1,
+            userId:this.userId
+          }
+        }
+        userGroup.getList(this,param).then(body=>{
+            let data  = body.data
+            if(data.isok){
+              this.userGroupitems = data.data;
+              $('#returnMessage').modal('show');
+            }
+          }
+        ).catch(function (e) {
+          console.log(e)
+        })
       },
       getChileList(paramId,parentId){
         this.$refs.homecenter.getlist(paramId,parentId);

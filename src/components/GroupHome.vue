@@ -114,6 +114,7 @@
             "updatetime": new Date(),
             "size": 0,
             "path": this.path,
+            "aias":0
           }
           this.axios.post("filegroup/add", fileuser).then(body => {
             $('#folder_modal').modal('hide');

@@ -17,7 +17,7 @@
   import  FileGroup from '../js/FileGroup'
   export default {
     name: "UploadFile",
-    props: ["user", "king","parentId","groupId"],
+    props: ["user", "king","parentId","groupIds"],
     data() {
       return {
         files: [],
@@ -27,6 +27,7 @@
         chunksSize:20971520,
         groupList:[],
         type:"",
+        groupId :1,
         splitfile:"0"
       }
     },
@@ -89,17 +90,15 @@
       },
       //TODO  checkMd5
       checkMd5:function(file,that){
-        var md5 = this.MD5;
+        let md5 = this.MD5;
         console.log("獲取當前："+md5)
-        var fd = {
+        let fd = {
           params: {
             fileId: md5,
           }
         }
-        console.log(that.groupId)
-        console.log(this.groupId)
-        this.axios.get("ftpfile/isExist", fd).then(body =>{
-            var result = body.data;
+        this.axios.get("ftpfile/isExist", fd).then((body) =>{
+            let result = body.data;
             if(!result.isok){
               this.getGroupList(file,that,md5);
             }else{
@@ -111,17 +110,16 @@
         });
       },
       getGroupList:function(file,that,md5){
-        var fd = {
+        let fd = {
           params: {
             groupId: that.groupId,
           }
         }
-        console.log(this.groupId)
-        this.axios.get("user/listGroup", fd).then(body =>{
+        this.axios.get("user/listGroup", fd).then((body) =>{
             var result = body.data;
             if(result.isok){
               this.groupList= result.data;
-              that.uploadChunk(file,that,md5);
+              that.uploadChunk(file,that,md5,that.parentId);
             }else{
               alert("不存在该用户组用户");
             }
@@ -131,7 +129,7 @@
           console.log(error);
         });
       },
-      uploadChunk:function(file,that,md5){
+      uploadChunk:function(file,that,md5,parentId){
         let chunkSize = 1024*1024*20;
         let chunks = Math.ceil(file.size / chunkSize);
         let  fd;
@@ -142,7 +140,6 @@
         let  blob;
         let fromList = new Array();
         let userList =that.groupList;
-        console.log(userList)
         while(currentChunk< chunks ){
           blob = file.slice(start,end);
           name = file.name +""+ currentChunk;
@@ -150,6 +147,7 @@
           fd = new FormData();
           fd.append('uploadFile',blob);
           fd.append('fileName', name);
+          fd.append('currentChunk',currentChunk);
           fd.append('groupId', that.groupId);
           fd.append('userId',userList[currentChunk].id)
           fd.append('key',userList[currentChunk].userFtp.ftpId+"_"+userList[currentChunk].userFtp.ftp_pswd)
@@ -158,21 +156,17 @@
           start = currentChunk * chunkSize;
           end = start + chunkSize >= file.size ? file.size : start + chunkSize;
         }
-         var promiseAll =  fromList.map(function (data) {
+         let promiseAll =  fromList.map(function (data) {
           return  that.axios.post("filegroup/upload", data);
         })
-        Promise.all(promiseAll).then(function(resArr){
-          resArr.forEach(function(res,i){
-            that.addFileGroup(md5,name,res.data.data,"/",0,0,0,100)
-          })
-          let  ftpFile = new FtpFile();
-          let b = file.type.split("/")
-          let type = ftpFile.switchType(b[0])
-          that.addFile(md5,file,type,chunks);
-        })
+          let ftpFile = new FtpFile();
+          let b = file.type.split("/");
+          let type = ftpFile.switchType(b[0]);
+          that.addFile(md5,file,type,chunks,promiseAll,that,parentId)
       },
-      addFile:function(md5,file,type,chunks){
-        var fd = new FormData();
+
+      addFile:function(md5,file,type,chunks,promiseAll,that,parentId){
+        let fd = new FormData();
         fd.append("fileId",md5);
         fd.append("name",file.name);
         fd.append("type_id",type);
@@ -180,9 +174,16 @@
         fd.append("create_time",new Date())
         fd.append("number",chunks);
         this.axios.post("ftpfile/add", fd).then(body => {
-          var result = body.data;
+          let result = body.data;
+          let fid = result.data;
           if(result.isok){
-            console.log("添加成功")
+            Promise.all(promiseAll).then(function(resArr){
+              resArr.forEach(function(res,i){
+                let data = res.data.data
+                console.log(i)
+                that.addFileGroup(fid,file.name,data.userId,"/",type,data.currentChunk,0,file.size)
+              })
+            })
           }else {
             console.log("添加失败")
           }
@@ -191,15 +192,26 @@
         });
       },
       //TODO addFileGroup`
-      addFileGroup:function(fileId,name,userId,path,type,state,parent,size){
-       var filegroup  =  new  FileGroup(fileId,this.groupId,name,userId,path,type,state,parent,size);
-       console.log(filegroup)
+      addFileGroup:function(fileId,name,userId,path,type,aias,parent,size){
+       // var filegroup  =  new  FileGroup(fileId,this.groupId,name,userId,path,type,state,parent,size);
+        let filegroup = {
+          file_id : fileId,
+          group_id:this.groupId,
+          name: name,
+          user_id:userId,
+          path:path,
+          type:type,
+          aias:aias,
+          parent:parent,
+          size:size,
+          updatetime:new Date()
+        }
         this.axios.post("filegroup/add", filegroup).then(body => {
-          var result = body.data;
+          let result = body.data;
           if(result.isok){
-            console.log("添加成功")
+           alert("添加成功")
           }else {
-            console.log("添加失败")
+            alert("添加失败")
           }
         }).catch(function (error) {
           console.log(error);

@@ -94,7 +94,7 @@
           });
       },
       searchByName:function (name,userId) {
-        var list = {
+        let list = {
           params: {
             order: name,
             userId: userId,
@@ -111,6 +111,7 @@
         }
       },
       searchByType:function (type,userId) {
+        console.log(userId)
         var list = {
           params: {
             order: type,

@@ -6,7 +6,9 @@ function TableOwner() {
 TableOwner.prototype.getManList = function (that) {
     var param ={
       params:{
-        groupId:that.groupId
+        groupId:that.groupId,
+        send:0,
+        userId:that.userId
       }
     }
     that.axios.get('userGroup/list',param).then(body=>{

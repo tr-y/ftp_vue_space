@@ -5,13 +5,17 @@
     <td v-if="item.size<=0">-</td>
     <td v-else>{{item.size}}</td>
     <td>{{item.updatetime}}</td>
-    <td  v-if="item.type>0"><button class="btn btn-outline-light" v-on:click="download">download</button></td>
+    <td  v-if="item.type>0&& king == 1 "><button class="btn btn-outline-light" v-on:click="groupDownload">download</button></td>
     <td v-else ></td>
-    <td ><button class="btn btn-outline-danger" v-on:click="deleteFile" >delete</button></td>
+    <td  v-if="item.type>0&& king == 0 "><button class="btn btn-outline-light" v-on:click="download">download</button></td>
+    <td v-else ></td>
+    <td v-if="king == 0"><button class="btn btn-outline-danger" v-on:click="deleteFile" >delete</button></td>
+    <td v-if="king == 1"><button class="btn btn-outline-danger" v-on:click="deleteGroupFile" >delete</button></td>
   </tr>
 </template>
 
 <script>
+  import  FileGroup from '../js/FileGroup'
   export default {
     name: "FileList",
     props:["item",'king'],
@@ -26,6 +30,14 @@
          this.$emit('gets',this.item.user_id,this.item.parent);
     })},
 
+      deleteGroupFile(){
+       let filegroup  = new FileGroup();
+        filegroup.delete(this);
+        this.getList();
+      },
+      groupDownload(){
+          let filegroup  = new FileGroup();
+      },
     // deleteUserFile:function () {
     //   this.axios({
     //     method: 'post',
@@ -56,6 +68,9 @@
           console.log(response);
         });
     },
+
+
+
 
     download:function () {
       let name = this.item.name

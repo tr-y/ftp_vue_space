@@ -7,7 +7,7 @@
       <tr  v-for="item in items">
         <td >{{item.name}}</td>
         <td >{{item.size}}</td>
-        <td ><button class="btn btn-outline-success" v-on:click="join(item.id)">join</button></td>
+        <td ><button class="btn btn-outline-success" v-on:click="sendJoin(item.id)">join</button></td>
       </tr>
     </tbody>
   </table>
@@ -16,6 +16,7 @@
 <script>
   import FGroup from "../js/FGroup"
   import {getCookie} from "../js/CookieModel";
+  import UserGroup from "../js/UserGroup";
     export default {
       name: "GroupTable",
       data() {
@@ -41,6 +42,22 @@
         join:function (groupId) {
           var  fgroup = new FGroup();
           fgroup.join(this,this.user_id,this.userId,groupId)
+        },
+        sendJoin:function(groupId){
+          let usergroup  = new UserGroup()
+          let fromdata = new FormData();
+          fromdata.append("groupId",groupId )
+          fromdata.append("userId",this.user_id )
+          fromdata.append("message","加入")
+          fromdata.append("state",11 )
+          usergroup.send(this,fromdata).then(result=>{
+            if(result.data.isok){
+              alert("发送成功")
+            }
+            else{
+              alert("发送失败")
+            }
+          })
         },
         search:function (groupName) {
           this.fgroup.search(this,groupName)

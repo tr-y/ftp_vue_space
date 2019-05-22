@@ -25,8 +25,8 @@
               <tr  v-for="item in items">
                 <td v-if="state == 0">{{item.userName}}</td>
                 <td v-if="state == 0">{{item.message}}</td>
-                <td v-if="state == 0" ><button class="btn btn-outline-success" >通過</button></td>
-                <td v-if="state == 0"><button class="btn btn-outline-danger" >不通過</button></td>
+                <td v-if="state == 0"><button class="btn btn-outline-success" @click="passsend(item)" >通過</button></td>
+                <td v-if="state == 0"><button class="btn btn-outline-danger" @click="nopasssend(item)">不通過</button></td>
 
                 <td v-if="state == 1">{{item.name}}</td>
                 <td v-if="state == 1">{{item.size}}</td>
@@ -51,6 +51,8 @@
   import {setCookie,getCookie} from "../js/CookieModel";
   import  GroupMenu from './GroupMenu'
   import  GroupOwner from '../js/TableOwner'
+  import UserGroup from '../js/UserGroup'
+  import UserController from '../js/UserController'
     export default {
         name: "GroupOwner",
         components: {TableGroupCenter,GroupMenu},
@@ -63,7 +65,8 @@
               ],
             items:[],
             state :0,
-            groupId:0
+            groupId:0,
+            userId:0
           }
         },
         mounted :function () {
@@ -74,6 +77,7 @@
           }
           var json = JSON.parse(value);
           this.groupId = json.user.groupId;
+          this.userId = json.user.id;
           // getList()
         },
         methods: {
@@ -92,8 +96,46 @@
             groupowner.deleteMessage(this,id);
           },
           deleteFile:function(){
+          },
+          passsend:function (item) {
+            let userController = new UserController();
+            let userGroup = new UserGroup();
+            var fd = new FormData();
+            fd.append("id",item.userId);
+            if(item.state == 11){
+            fd.append("groupId",item.groupId);
+            }
+            else {
+              fd.append("groupId",item.groupId);
+            }
+            userController.update(this,fd).then(result=>{
+              if(result.data.isok){
+                let fd = new FormData()
+                fd.append("id",item.id)
+                fd.append("state",33)
+                fd.append("message","入群申请[通过] 时间："+new Date())
+                userGroup.update(this,fd).then(result=>{
+                  if(result.data.isok){
+                    this.getList(0)
+                  }
+                })
+              }
+            })
+          },
+          nopasssend:function(item){
+            let userGroup = new UserGroup();
+            let fd = new FormData()
+            fd.append("id",item.id)
+            fd.append("state",44)
+            fd.append("message","入群申请[失败] 时间："+new Date())
+            userGroup.update(this,fd).then(result=>{
+              if(result.data.isok){
+                this.getList(0)
+              }
+            })
+          },
 
-          }
+
         }
 
     }

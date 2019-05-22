@@ -34,7 +34,7 @@
     data(){
       return{
         size:10,
-        paths:["/home","/groupHome","/groupMessage","/space","/personal","/message"],
+        paths:["/home","/groupHome","/groupView","/space","/personal","/message"],
         istrue:0
       }
     },

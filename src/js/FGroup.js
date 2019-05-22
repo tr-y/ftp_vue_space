@@ -58,6 +58,8 @@ FGroup.prototype.search = function (that,groupName) {
   });
 }
 
-
+FGroup.prototype.creat =function (that,fGroup) {
+ return that.axios.post("fgroup/build",fGroup)
+}
 
 export default FGroup;

@@ -76,10 +76,10 @@
           this.$refs.tablecenter.searchByName(this.searchName,1)
         },
         searchByType:function (param) {
-          this.$refs.tablecenter.searchByType(param,1)
+          this.$refs.tablecenter.searchByType(param,this.userId,1)
         },
         groupSearchByType:function (param) {
-          this.$refs.tablecenter.groupSearchByType(param,1)
+          this.$refs.tablecenter.groupSearchByType(param,this.groupId,1)
         },
         groupSearchByName:function () {
           this.$refs.tablecenter.groupSearchByName(this.searchName,1)
